@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inicio | Ramoza</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <a class="skip-link" href="#main">Saltar al contenido principal</a>
+    <header class="site-header">
+      <div class="utility">Envíos en Quito y Valles · Transporte protegido en auto</div>
+      <div class="header-main">
+        <button type="button" class="logo" id="nav-logo" aria-label="Ramoza, ir al inicio">
+          <span class="logo-mark">
+            <svg aria-hidden="true" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 21C5 10 11 4 20 3c0 9-5 15-15 18Z"></path><path d="M6 19c3-5 6-8 11-12"></path>
+            </svg>
+          </span>
+          <span><b>ramo<i>za</i></b><small>FLORES Y OBSEQUIOS</small></span>
+        </button>
+        <form class="search" role="search" id="search-form">
+          <label class="sr-only" for="site-search">Buscar flores, regalos o arreglos</label>
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path>
+          </svg>
+          <input id="site-search" aria-label="Buscar flores, regalos o arreglos" placeholder="¿Qué detalle estás buscando?" />
+          <button type="submit" aria-label="Buscar productos">Buscar</button>
+        </form>
+        <div class="header-actions">
+          <button class="header-action" id="nav-account" aria-label="Iniciar sesión o crear cuenta">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>
+            </svg>
+            <span><small id="auth-status">Hola, invitado</small><span id="auth-label">Mi cuenta</span></span>
+          </button>
+          <button class="header-action cart-action" id="nav-cart" aria-label="Abrir carrito, 0 productos">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H7"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>
+            </svg>
+            <span><small>Mi compra</small>Carrito</span>
+            <b id="cart-badge" style="display: none;">0</b>
+          </button>
+        </div>
+      </div>
+      <nav aria-label="Categorías principales">
+        <div class="nav-inner" id="main-nav">
+          <button class="active" data-cat="Todos" aria-label="Ir al inicio" aria-current="page">Inicio</button>
+          <button data-cat="Arreglos florales" aria-label="Abrir categoría Arreglos florales">Arreglos florales</button>
+          <button data-cat="Regalos" aria-label="Abrir categoría Regalos">Regalos</button>
+          <button data-cat="Funerarios" aria-label="Abrir categoría Funerarios">Funerarios</button>
+          <button data-nav="policy" aria-label="Consultar envíos y devoluciones">Envíos y devoluciones</button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" style="display: none;">
+      <span>
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m5 12 4 4L19 6"></path>
+        </svg>
+      </span>
+      <span id="toast-message"></span>
+      <button id="toast-close" aria-label="Cerrar notificación">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 6 12 12M18 6 6 18"></path>
+        </svg>
+      </button>
+    </div>
+
+    <main id="main" tabindex="-1">
+      <!-- Vistas serán inyectadas por JS para mantener el código limpio y simular React -->
+      <div id="view-container"></div>
+    </main>
+
+    <footer>
+      <div class="footer-main">
+        <div>
+          <button type="button" class="logo" id="footer-logo" aria-label="Ramoza, ir al inicio">
+            <span class="logo-mark">
+              <svg aria-hidden="true" width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 21C5 10 11 4 20 3c0 9-5 15-15 18Z"></path><path d="M6 19c3-5 6-8 11-12"></path>
+              </svg>
+            </span>
+            <span><b>ramo<i>za</i></b><small>FLORES Y OBSEQUIOS</small></span>
+          </button>
+          <p>Plataforma digital de flores y obsequios ofrecidos por empresas proveedoras.</p>
+        </div>
+        <div role="navigation" aria-label="Comprar por categoría">
+          <h2>Comprar</h2>
+          <button data-cat="Arreglos florales">Arreglos florales</button>
+          <button data-cat="Regalos">Regalos</button>
+          <button data-cat="Funerarios">Funerarios</button>
+        </div>
+        <div role="navigation" aria-label="Ayuda">
+          <h2>Ayuda</h2>
+          <button data-nav="policy">Envíos y devoluciones</button>
+          <button>Contactar por WhatsApp</button>
+        </div>
+        <div role="navigation" aria-label="Opciones de cuenta">
+          <h2>Cuenta</h2>
+          <button data-nav="signin">Iniciar sesión</button>
+          <button data-nav="signup">Crear una cuenta</button>
+        </div>
+      </div>
+      <div class="footer-bottom"><span>© 2026 Ramoza</span></div>
+    </footer>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>

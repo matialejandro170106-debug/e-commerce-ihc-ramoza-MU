@@ -43,7 +43,8 @@ let state = {
   signedIn: false,
   checkoutAfterAuth: false,
   orderNumber: '',
-  fulfillmentMethod: 'delivery'
+  fulfillmentMethod: 'delivery',
+  showConfirmation: false
 };
 
 const icons = {
@@ -82,7 +83,7 @@ function renderProductCard(p) {
         <p class="eyebrow" aria-hidden="true">${p.category}</p>
         <button class="product-name" onclick="openProduct(${p.id})" aria-label="Ver detalles de ${p.name}">${p.name}</button>
         <div class="price-line">
-          <div><strong>$${p.price.toFixed(2)}</strong>${p.oldPrice ? `<del aria-label="Precio anterior">$${p.oldPrice.toFixed(2)}</del>` : ''}</div>
+          <div><strong ${p.oldPrice ? 'style="color: var(--coral);"' : ''}>$${p.price.toFixed(2)}</strong>${p.oldPrice ? `<del aria-label="Precio anterior">$${p.oldPrice.toFixed(2)}</del>` : ''}</div>
           ${quantity === 0 
             ? `<button class="round-add" onclick="updateCart(${p.id}, 1)" aria-label="Agregar 1 unidad de ${p.name} al carrito">${getIcon('plus')}</button>` 
             : `<div class="card-quantity" role="group" aria-label="Control de cantidad de ${p.name}">
@@ -192,7 +193,7 @@ function viewDetail() {
         <div class="detail-copy">
           <p class="eyebrow">${p.category}</p>
           <h1>${p.name}</h1>
-          <div class="detail-price"><strong>$${p.price.toFixed(2)}</strong>${p.oldPrice ? `<del aria-label="Precio anterior">$${p.oldPrice.toFixed(2)}</del>`:''}</div>
+          <div class="detail-price"><strong ${p.oldPrice ? 'style="color: var(--coral);"' : ''}>$${p.price.toFixed(2)}</strong>${p.oldPrice ? `<del aria-label="Precio anterior">$${p.oldPrice.toFixed(2)}</del>`:''}</div>
           <p class="description">${p.description}</p>
           <div class="availability">${getIcon('check')}<div><b>Disponible para envío en Quito y Valles o retiro</b><small>Ramoza coordina un automóvil para proteger el producto.</small></div></div>
           
@@ -289,8 +290,19 @@ function viewCheckout() {
       <button class="back-link" onclick="navigate('cart')" aria-label="Volver al carrito de compras">${getIcon('back')} Volver al carrito</button>
       <div class="page-title"><p class="eyebrow" aria-hidden="true">FINALIZAR COMPRA</p><h1>¿Cómo quieres recibirlo?</h1></div>
       
-      <form class="checkout-layout" onsubmit="event.preventDefault(); submitOrder()">
+      <form class="checkout-layout" onsubmit="event.preventDefault(); state.showConfirmation=true; renderApp();">
         <div class="checkout-form">
+          <fieldset><legend>Datos de contacto</legend>
+            <div class="form-grid">
+              <label>Nombre completo
+                <input required placeholder="Ej. María Pérez" aria-label="Ingresa tu nombre completo" />
+              </label>
+              <label>Teléfono (WhatsApp)
+                <input required type="tel" placeholder="09..." aria-label="Ingresa tu número de celular para contactarte por WhatsApp" />
+              </label>
+            </div>
+          </fieldset>
+
           <fieldset><legend>Método de entrega</legend>
             <label class="payment-option ${state.fulfillmentMethod === 'delivery' ? 'selected' : ''}">
               <input type="radio" name="fulfillment" value="delivery" onchange="state.fulfillmentMethod='delivery'; renderApp()" ${state.fulfillmentMethod === 'delivery' ? 'checked' : ''} aria-label="Envío protegido en Quito y Valles" />
@@ -324,6 +336,23 @@ function viewCheckout() {
           <button class="primary wide" type="submit" aria-label="Confirmar pedido y registrar compra">Confirmar pedido ${getIcon('arrow')}</button>
         </aside>
       </form>
+      ${state.showConfirmation ? `
+        <div class="modal-overlay" style="position: fixed; inset: 0; background: rgba(44, 62, 80, 0.6); display: grid; place-items: center; z-index: 100; backdrop-filter: blur(2px);">
+          <div class="modal-card" style="background: var(--smoke); padding: 35px 30px; border-radius: 12px; width: min(420px, 90%); text-align: center; box-shadow: 0 25px 50px rgba(44,62,80,0.3);">
+            <div style="margin-bottom: 25px;">
+              <svg aria-hidden="true" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#F1C40F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 16px auto; display: block;">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>
+              </svg>
+              <h3 style="color: var(--slate); font: 700 24px Georgia, serif; margin: 0 0 8px 0; line-height: 1.1;">Confirmar pedido</h3>
+              <p style="color: rgba(44,62,80,0.75); font-size: 15px; margin: 0; line-height: 1.4;">¿Seguro quieres comprar este artículo?</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <button type="button" class="secondary" style="border-color: #E74C3C; color: #E74C3C;" onclick="state.showConfirmation=false; renderApp();">No, revisar</button>
+              <button type="button" class="primary" onclick="submitOrder()">Sí, confirmar</button>
+            </div>
+          </div>
+        </div>
+      ` : ''}
     </section>
   `;
 }
@@ -345,9 +374,9 @@ function viewAuth(type) {
     <section class="auth-page">
       <div class="auth-card">
         <h1>${type === 'signin' ? 'Inicia sesión en Ramoza' : 'Crea una cuenta en Ramoza'}</h1>
-        <form onsubmit="event.preventDefault(); state.signedIn=true; navigate(Object.keys(state.cart).length ? 'checkout' : 'home');">
-          <label>Correo electrónico <input required type="email" aria-label="Ingresa tu correo electrónico" /></label>
-          <label>Contraseña <input required type="password" aria-label="Ingresa tu contraseña" /></label>
+        <form onsubmit="event.preventDefault(); state.signedIn=true; navigate(Object.keys(state.cart).length ? 'checkout' : 'home');" autocomplete="off">
+          <label>Correo electrónico <input type="text" autocomplete="off" aria-label="Ingresa tu correo electrónico" /></label>
+          <label>Contraseña <input type="password" autocomplete="new-password" aria-label="Ingresa tu contraseña" /></label>
           <button class="primary wide" type="submit" aria-label="${type === 'signin' ? 'Iniciar sesión' : 'Registrar nueva cuenta'}">${type === 'signin' ? 'Entrar' : 'Registrarse'}</button>
         </form>
       </div>
@@ -437,6 +466,7 @@ function showToast(msg) {
 }
 
 function submitOrder() {
+  state.showConfirmation = false;
   state.orderNumber = 'RA-' + Math.floor(10000 + Math.random() * 89999);
   state.cart = {};
   navigate('success');

@@ -201,7 +201,9 @@ function viewDetail() {
             ? `<button class="primary wide" onclick="updateCart(${p.id}, 1); showToast('${p.name} agregado')" aria-label="Agregar ${p.name} al carrito por $${p.price.toFixed(2)}">
             Agregar al carrito · $${p.price.toFixed(2)} ${getIcon('cart')}
           </button>`
-            : `<div class="card-quantity" style="width: 100%; justify-content: space-between; margin-bottom: 12px; min-height: 48px;" role="group" aria-label="Control de cantidad de ${p.name}">
+            : `${qty === 1 ? `
+                 <div style="background: #F1C40F; padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--slate); font-size: 15px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ¡Añadido al carrito con éxito!</div>` : ''}
+                 <div class="card-quantity" style="width: 100%; justify-content: space-between; margin-bottom: 12px; min-height: 48px;" role="group" aria-label="Control de cantidad de ${p.name}">
                  <button class="${qty === 1 ? 'delete-control' : ''}" style="width: 48px;" onclick="updateCart(${p.id}, -1)" aria-label="${qty === 1 ? `Eliminar ${p.name} del carrito` : `Quitar una unidad de ${p.name}`}">
                    ${getIcon(qty === 1 ? 'trash' : 'minus', 18)}
                  </button>
@@ -279,9 +281,16 @@ function viewCart() {
 }
 
 function viewCheckout() {
+  const cartIds = Object.keys(state.cart);
+  if (cartIds.length === 0) {
+    setTimeout(() => navigate('home'), 0);
+    return `<section class="page-shell narrow"><div class="empty-state"><h2>Tu carrito está vacío</h2></div></section>`;
+  }
+
+  const hasFuneralProduct = cartIds.some(id => getProduct(Number(id)).category === 'Funerarios');
   const delivery = state.fulfillmentMethod === 'pickup' ? 0 : null;
   let subtotal = 0;
-  Object.keys(state.cart).forEach(id => { subtotal += getProduct(Number(id)).price * state.cart[id]; });
+  cartIds.forEach(id => { subtotal += getProduct(Number(id)).price * state.cart[id]; });
 
   const total = subtotal + (delivery || 0);
 
@@ -292,13 +301,22 @@ function viewCheckout() {
       
       <form class="checkout-layout" onsubmit="event.preventDefault(); state.showConfirmation=true; renderApp();">
         <div class="checkout-form">
+          ${hasFuneralProduct ? `
+            <fieldset><legend>Nota de condolencia</legend>
+              <div class="form-grid">
+                <label class="full">Mensaje para el arreglo funerario
+                  <textarea maxlength="350" rows="3" placeholder="Escribe un mensaje de acompañamiento o condolencia..." aria-label="Escribe la carta para el arreglo funerario, máximo 350 caracteres"></textarea>
+                </label>
+              </div>
+            </fieldset>
+          ` : ''}
           <fieldset><legend>Datos de contacto</legend>
             <div class="form-grid">
               <label>Nombre completo
-                <input required placeholder="Ej. María Pérez" aria-label="Ingresa tu nombre completo" />
+                <input required maxlength="100" placeholder="Ej. María Pérez" aria-label="Ingresa tu nombre completo" />
               </label>
               <label>Teléfono (WhatsApp)
-                <input required type="tel" placeholder="09..." aria-label="Ingresa tu número de celular para contactarte por WhatsApp" />
+                <input required type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="09..." aria-label="Ingresa tu número de celular para contactarte por WhatsApp" />
               </label>
             </div>
           </fieldset>
@@ -318,7 +336,7 @@ function viewCheckout() {
             <fieldset id="address-fields"><legend>Dirección de entrega</legend>
               <div class="form-grid">
                 <label class="full">Dirección, sector y referencia
-                  <input required placeholder="Calle, número, sector..." aria-label="Ingresa tu dirección completa, sector de la ciudad y una referencia visual" />
+                  <input required maxlength="200" placeholder="Calle, número, sector..." aria-label="Ingresa tu dirección completa, sector de la ciudad y una referencia visual" />
                 </label>
               </div>
             </fieldset>
@@ -374,10 +392,18 @@ function viewAuth(type) {
     <section class="auth-page">
       <div class="auth-card">
         <h1>${type === 'signin' ? 'Inicia sesión en Ramoza' : 'Crea una cuenta en Ramoza'}</h1>
-        <form onsubmit="event.preventDefault(); state.signedIn=true; navigate(Object.keys(state.cart).length ? 'checkout' : 'home');" autocomplete="off">
-          <label>Correo electrónico <input type="text" autocomplete="off" aria-label="Ingresa tu correo electrónico" /></label>
-          <label>Contraseña <input type="password" autocomplete="new-password" aria-label="Ingresa tu contraseña" /></label>
+        <form onsubmit="event.preventDefault(); if('${type}'==='signup' && this.pwd1.value !== this.pwd2.value) { this.pwd2.setCustomValidity('Las contraseñas no coinciden'); this.pwd2.reportValidity(); return; } state.signedIn=true; navigate(Object.keys(state.cart).length ? 'checkout' : 'home');" autocomplete="off">
+          <label>Correo electrónico <input type="email" required maxlength="100" autocomplete="off" aria-label="Ingresa tu correo electrónico" /></label>
+          <label>Contraseña <input type="password" name="pwd1" required maxlength="50" autocomplete="new-password" aria-label="Ingresa tu contraseña" /></label>
+          ${type === 'signup' ? `<label>Confirmar contraseña <input type="password" name="pwd2" required maxlength="50" oninput="this.setCustomValidity('')" autocomplete="new-password" aria-label="Confirma tu contraseña" /></label>` : ''}
           <button class="primary wide" type="submit" aria-label="${type === 'signin' ? 'Iniciar sesión' : 'Registrar nueva cuenta'}">${type === 'signin' ? 'Entrar' : 'Registrarse'}</button>
+          
+          <div style="text-align: center; margin-top: 20px; font-size: 14.5px;">
+            ${type === 'signin' 
+              ? `¿No tienes cuenta? <button type="button" style="background:none; border:none; color:var(--green); font-weight:700; cursor:pointer;" onclick="navigate('signup')">Crea una aquí</button>`
+              : `¿Ya tienes cuenta? <button type="button" style="background:none; border:none; color:var(--green); font-weight:700; cursor:pointer;" onclick="navigate('signin')">Inicia sesión</button>`
+            }
+          </div>
         </form>
       </div>
     </section>
@@ -406,13 +432,37 @@ function viewPolicy() {
         <article><span aria-hidden="true">03</span><h2>Si algo llegó mal</h2><p>Reporta daños, un producto incorrecto o una entrega incompleta con una fotografía. Gestionaremos con el proveedor la reposición del producto o la devolución del dinero.</p></article>
         <article><span aria-hidden="true">04</span><h2>Entrega en Quito y Valles</h2><p>Ramoza coordina el traslado en automóvil mediante Uber Flash o inDrive Entregas para proteger los arreglos. La tarifa depende de la ruta y se confirma por WhatsApp. También puedes retirar sin costo con el proveedor.</p></article>
       </div>
-      <aside class="help-band">${getIcon('info', 28)}<div><h2>¿Tienes un problema con tu pedido?</h2><p>Escríbenos por WhatsApp con el número de pedido y una foto si el producto llegó dañado.</p></div><button class="secondary" aria-label="Escribir al equipo de soporte por WhatsApp para reportar un problema con tu pedido">Escribir por WhatsApp</button></aside>
     </section>
   `;
 }
 
 // ================= CONTROLADOR =================
 
+
+function viewContact() {
+  return `
+    <section class="page-shell narrow" style="text-align: center; padding: 60px 20px;">
+      <button class="back-link" onclick="navigate('home')" aria-label="Volver al inicio">${getIcon('back')} Volver al inicio</button>
+      <div style="background: var(--smoke); padding: 50px 30px; border-radius: 16px; margin-top: 20px; box-shadow: 0 10px 30px rgba(44,62,80,0.1);">
+        <div style="color: var(--green); margin-bottom: 20px;">
+          <svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto; display: block;">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+        </div>
+        <h1 style="color: var(--slate); font-family: Georgia, serif; margin: 0 0 15px; font-size: 28px;">Contáctanos</h1>
+        <p style="color: rgba(44,62,80,0.8); font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+          ¿Tienes alguna duda sobre tu pedido o necesitas asesoría personalizada? Escríbenos directamente a nuestro WhatsApp oficial:
+        </p>
+        <div style="font-size: 28px; font-weight: 800; color: var(--green); margin-bottom: 35px; letter-spacing: 1px;">
+          +593 93 905 0668
+        </div>
+        <a href="https://wa.me/593939050668" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--green); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; width: 100%; box-sizing: border-box;" aria-label="Abrir chat de WhatsApp en una nueva pestaña">
+          Abrir chat de WhatsApp
+        </a>
+      </div>
+    </section>
+  `;
+}
 function navigate(screen, push = true) {
   state.screen = screen;
   if (push) {
@@ -445,6 +495,9 @@ function updateCart(id, delta) {
   const next = Math.max(0, current + delta);
   if (next === 0) {
     delete state.cart[id];
+  } else if (next > 50) {
+    state.cart[id] = 50;
+    showToast('Límite de 50 unidades');
   } else {
     state.cart[id] = next;
   }
@@ -517,6 +570,7 @@ function renderApp() {
     case 'signin': container.innerHTML = viewAuth('signin'); break;
     case 'signup': container.innerHTML = viewAuth('signup'); break;
     case 'policy': container.innerHTML = viewPolicy(); break;
+    case 'contact': container.innerHTML = viewContact(); break;
     case 'account': container.innerHTML = viewAccount(); break;
   }
 

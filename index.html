@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inicio | Ramoza</title>
+  <title>Ramoza | Flores y obsequios (Vanilla JS)</title>
+  <meta name="description" content="Plataforma accesible para compra de arreglos florales, regalos y arreglos funerarios.">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -26,7 +27,7 @@
           <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path>
           </svg>
-          <input id="site-search" aria-label="Buscar flores, regalos o arreglos" placeholder="¿Qué detalle estás buscando?" />
+          <input id="site-search" maxlength="100" aria-label="Buscar flores, regalos o arreglos" placeholder="¿Qué detalle estás buscando?" />
           <button type="submit" aria-label="Buscar productos">Buscar</button>
         </form>
         <div class="header-actions">
@@ -36,12 +37,12 @@
             </svg>
             <span><small id="auth-status">Hola, invitado</small><span id="auth-label">Mi cuenta</span></span>
           </button>
-          <button class="header-action cart-action" id="nav-cart" aria-label="Abrir carrito, 0 productos">
+          <button class="header-action cart-action" id="nav-cart" aria-label="Abrir carrito">
             <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H7"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>
             </svg>
             <span><small>Mi compra</small>Carrito</span>
-            <b id="cart-badge" style="display: none;">0</b>
+            <b id="cart-badge" aria-live="polite" style="display: none;">0</b>
           </button>
         </div>
       </div>
@@ -71,7 +72,6 @@
     </div>
 
     <main id="main" tabindex="-1">
-      <!-- Vistas serán inyectadas por JS para mantener el código limpio y simular React -->
       <div id="view-container"></div>
     </main>
 
@@ -97,7 +97,7 @@
         <div role="navigation" aria-label="Ayuda">
           <h2>Ayuda</h2>
           <button data-nav="policy">Envíos y devoluciones</button>
-          <button>Contactar por WhatsApp</button>
+          <button data-nav='contact'>Contactar por WhatsApp</button>
         </div>
         <div role="navigation" aria-label="Opciones de cuenta">
           <h2>Cuenta</h2>

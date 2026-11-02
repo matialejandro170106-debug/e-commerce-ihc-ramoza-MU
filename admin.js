@@ -4,7 +4,7 @@
 // Seguridad Criptográfica SHA-256 + Sal y Conexión Directa a Supabase PostgreSQL
 // =========================================================================
 
-const galleryAdmin = (source) => [`${source.split("?")[0]}?auto=format&fit=crop&w=1200&q=85`];
+const galleryAdmin = (source) => [`${source.split("?")[0]}?auto=format&fit=crop&w=480&q=75`];
 
 const DEFAULT_PRODUCTS = [
   // --- ARREGLOS FLORALES (10 productos · Stock inicial: 30 c/u) ---

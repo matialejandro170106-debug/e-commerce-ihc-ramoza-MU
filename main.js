@@ -1,4 +1,22 @@
-const gallery = (source) => [`${source.split("?")[0]}?auto=format&fit=crop&w=1200&q=85`];
+function getThumbnailUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  if (url.includes('images.unsplash.com')) {
+    const base = url.split('?')[0];
+    return `${base}?auto=format&fit=crop&w=480&q=75`;
+  }
+  return url;
+}
+
+function getDetailImageUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  if (url.includes('images.unsplash.com')) {
+    const base = url.split('?')[0];
+    return `${base}?auto=format&fit=crop&w=900&q=80`;
+  }
+  return url;
+}
+
+const gallery = (source) => [getThumbnailUrl(source)];
 
 const CATALOG_DEFAULTS = [
   // --- ARREGLOS FLORALES (10 productos · Stock inicial: 30 unidades c/u) ---
@@ -664,7 +682,10 @@ function translateDbConstraintError(err, context = {}) {
     if (stockLimit <= 0) {
       return `⚠️ Lo sentimos, "${prodName}" está agotado por el momento.`;
     }
-    return `⚠️ Stock insuficiente: solo hay ${stockLimit} ${stockLimit === 1 ? 'unidad disponible' : 'unidades disponibles'} de "${prodName}". Ya tienes el máximo en tu carrito.`;
+    if (stockLimit <= 5) {
+      return `⚠️ Solo quedan ${stockLimit} ${stockLimit === 1 ? 'unidad disponible' : 'unidades disponibles'} de "${prodName}". Ya tienes el máximo en tu carrito.`;
+    }
+    return `⚠️ Has alcanzado la cantidad máxima permitida para "${prodName}". Ya tienes el máximo en tu carrito.`;
   }
 
   // 2. Constraint de Llave Foránea (ej. ERROR 1452 / SQLSTATE 23503 / fk_cliente / pedidos_usuario_id_fkey)
@@ -1301,7 +1322,7 @@ function changeDocumentType(newDocType) {
 // Aviso de disponibilidad visible al cliente: solo cuando quedan 5 o menos unidades (o está agotado)
 function getLowStockNotice(p) {
   const stock = typeof p.stock === 'number' ? p.stock : 30;
-  if (stock <= 0) return { cls: 'out', text: 'Agotado' };
+  if (stock <= 0) return { cls: 'out', text: 'Agotado por el momento' };
   if (stock <= 5) return { cls: 'low', text: `¡Solo ${stock} ${stock === 1 ? 'disponible' : 'disponibles'}!` };
   return null;
 }
@@ -1316,7 +1337,7 @@ function renderProductCard(p) {
   return `
     <article class="product-card" aria-label="${escapeHtml(p.name)}, precio $${p.price.toFixed(2)}${notice ? ', ' + notice.text : ''}">
       <a class="product-image" href="producto.html?id=${p.id}" onclick="openProduct(${p.id}); return false;" aria-label="Ver detalles e información completa de ${escapeHtml(p.name)}">
-        <img src="${p.images[0]}" alt="${escapeHtml(p.alt)}" loading="lazy" />
+        <img src="${getThumbnailUrl(p.images[0])}" alt="${escapeHtml(p.alt)}" loading="lazy" decoding="async" width="280" height="260" />
       </a>
       <div class="product-copy">
         <p class="eyebrow" aria-hidden="true">${escapeHtml(p.category)}</p>
@@ -1349,7 +1370,7 @@ function viewHome() {
   const top12 = products.slice(0, 12).map(renderProductCard).join('');
   return `
     <section class="hero" aria-labelledby="hero-heading">
-      <img src="https://images.unsplash.com/photo-1685613858397-64f79a0f3603?auto=format&fit=crop&w=1600&q=90" alt="Arreglo floral fresco de rosas y follaje luminoso en florero decorativo para entrega en Quito" />
+      <img src="https://images.unsplash.com/photo-1685613858397-64f79a0f3603?auto=format&fit=crop&w=1200&q=80" alt="Arreglo floral fresco de rosas y follaje luminoso en florero decorativo para entrega en Quito" fetchpriority="high" decoding="async" />
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <p class="hero-kicker" aria-hidden="true">FLORES FRESCAS · ENTREGAS EN QUITO Y VALLES</p>
@@ -1365,15 +1386,15 @@ function viewHome() {
       </div>
       <div class="category-grid">
         <a class="category-tile" href="catalogo.html?cat=Arreglos%20florales" onclick="setCategory('Arreglos florales'); return false;" aria-label="Explorar categoría Arreglos florales">
-          <img src="${(products[2] || products[0]).images[0]}" alt="Ejemplo de arreglos florales frescos de rosas y follaje de temporada" loading="lazy" />
+          <img src="${getThumbnailUrl((products[2] || products[0]).images[0])}" alt="Ejemplo de arreglos florales frescos de rosas y follaje de temporada" loading="lazy" decoding="async" />
           <span><span class="tile-link">Arreglos florales ${getIcon('arrow', 18)}</span></span>
         </a>
         <a class="category-tile" href="catalogo.html?cat=Regalos" onclick="setCategory('Regalos'); return false;" aria-label="Explorar categoría Regalos">
-          <img src="${(products[8] || products[0]).images[0]}" alt="Ejemplo de regalos con chocolates, canastas y flores frescas" loading="lazy" />
+          <img src="${getThumbnailUrl((products[8] || products[0]).images[0])}" alt="Ejemplo de regalos con chocolates, canastas y flores frescas" loading="lazy" decoding="async" />
           <span><span class="tile-link">Regalos ${getIcon('arrow', 18)}</span></span>
         </a>
         <a class="category-tile" href="catalogo.html?cat=Funerarios" onclick="setCategory('Funerarios'); return false;" aria-label="Explorar categoría Funerarios">
-          <img src="${(products[11] || products[0]).images[0]}" alt="Ejemplo de arreglos funerarios solemnes y coronas de condolencias" loading="lazy" />
+          <img src="${getThumbnailUrl((products[11] || products[0]).images[0])}" alt="Ejemplo de arreglos funerarios solemnes y coronas de condolencias" loading="lazy" decoding="async" />
           <span><span class="tile-link">Funerarios ${getIcon('arrow', 18)}</span></span>
         </a>
       </div>
@@ -1442,7 +1463,7 @@ function viewDetail() {
       <a class="back-link" aria-label="Volver al catálogo de productos" href="catalogo.html">${getIcon('back')} Volver al catálogo</a>
       <div class="detail-grid">
         <div class="detail-gallery">
-          <div class="detail-image"><img src="${p.images[0]}" alt="${escapeHtml(p.alt)}" /></div>
+          <div class="detail-image"><img src="${getDetailImageUrl(p.images[0])}" alt="${escapeHtml(p.alt)}" decoding="async" /></div>
         </div>
         <div class="detail-copy">
           <p class="eyebrow" aria-hidden="true">${escapeHtml(p.category)}</p>
@@ -1536,10 +1557,16 @@ function viewCart() {
 
     return `
       <article class="cart-item" role="listitem">
-        <img src="${p.images[0]}" alt="${escapeHtml(p.alt)}" />
+        <a class="cart-item-thumb-link" href="producto.html?id=${p.id}" onclick="openProduct(${p.id}); return false;" aria-label="Ver detalles de ${escapeHtml(p.name)}" title="Ver detalles de ${escapeHtml(p.name)}">
+          <img src="${getThumbnailUrl(p.images[0])}" alt="${escapeHtml(p.alt)}" loading="lazy" decoding="async" width="110" height="110" />
+        </a>
         <div class="cart-item-info">
           <p class="eyebrow" aria-hidden="true">${escapeHtml(p.category)}</p>
-          <h2>${escapeHtml(p.name)}</h2>
+          <h2 class="cart-item-title">
+            <a href="producto.html?id=${p.id}" onclick="openProduct(${p.id}); return false;" aria-label="Ver detalles de ${escapeHtml(p.name)}" title="Ver detalles de ${escapeHtml(p.name)}">
+              ${escapeHtml(p.name)}
+            </a>
+          </h2>
           ${getLowStockNotice(p) ? `<div style="margin: 2px 0 6px;"><span class="stock-badge ${getLowStockNotice(p).cls}">${getLowStockNotice(p).text}</span></div>` : ''}
           ${funeralNote ? `<p style="font-size: 13px; color: var(--slate); background: var(--green-light); padding: 6px 10px; border-radius: 6px; margin: 6px 0;"><strong>Dedicatoria:</strong> "${escapeHtml(funeralNote)}"</p>` : ''}
           ${itemAlert ? `<div class="constraint-alert-banner" role="alert" aria-live="assertive" style="margin: 6px 0; padding: 8px 12px; font-size: 12.5px;">${escapeHtml(itemAlert)}</div>` : ''}
@@ -1637,7 +1664,7 @@ function viewCheckout() {
   return `
     <section class="page-shell narrow">
       <a class="back-link" href="carrito.html" aria-label="Volver al carrito de compras">${getIcon('back')} Volver al carrito</a>
-      <div class="page-title"><p class="eyebrow" aria-hidden="true">CHECKOUT SEGURO</p><h1>Finalizar compra</h1></div>
+      <div class="page-title"><p class="eyebrow" aria-hidden="true">TU COMPRA</p><h1>Finalizar compra</h1></div>
       
       <form class="checkout-layout" id="checkout-form" onsubmit="event.preventDefault(); handleCheckoutSubmit(this);">
         <div class="checkout-form">
@@ -1749,7 +1776,7 @@ function viewCheckout() {
                 <input type="radio" name="payment" value="card" onchange="changePayment('card')" ${state.paymentMethod === 'card' ? 'checked' : ''} aria-label="Pagar con tarjeta de crédito o débito" />
                 <span>
                   <strong>Tarjeta de crédito o débito</strong>
-                  <span class="subtext">Aceptamos Visa, Mastercard y tarjetas nacionales. Procesamiento seguro e inmediato.</span>
+                  <span class="subtext">Aceptamos Visa, Mastercard y tarjetas nacionales con confirmación inmediata.</span>
                 </span>
               </label>
 
@@ -1804,7 +1831,7 @@ function viewCheckout() {
                 </div>
                 <div class="receipt-payment-banner cancelado" role="status" style="margin-top: 16px;">
                   <div>
-                    <strong>Pago protegido con tarjeta:</strong> Procesamiento seguro mediante pasarela bancaria. Al confirmar tu compra, tu Comprobante de Venta se emitirá con estado <strong>CANCELADO</strong>.
+                    <strong>Pago con tarjeta:</strong> Al confirmar tu compra, tu Comprobante de Venta se emitirá con estado <strong>CANCELADO</strong>.
                   </div>
                   <span class="receipt-status-badge cancelado">CANCELADO</span>
                 </div>
@@ -1857,17 +1884,17 @@ function viewCheckout() {
           </fieldset>
 
           <!-- Promesas y Garantías de Compra Ramoza -->
-          <div class="checkout-promises-card" role="region" aria-label="Nuestras 4 promesas y garantías de compra">
+          <div class="checkout-promises-card" role="region" aria-label="Nuestras garantías de compra Ramoza">
             <div class="promises-header">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
-              <span>Nuestras 4 Promesas al Realizar tu Pago</span>
+              <span>Nuestras Garantías en tu Pedido</span>
             </div>
             <div class="promises-grid">
               <div class="promise-item">
                 <div class="promise-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                 </div>
@@ -1879,7 +1906,7 @@ function viewCheckout() {
 
               <div class="promise-item">
                 <div class="promise-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 21C5 10 11 4 20 3c0 9-5 15-15 18Z"></path><path d="M6 19c3-5 6-8 11-12"></path>
                   </svg>
                 </div>
@@ -1891,7 +1918,7 @@ function viewCheckout() {
 
               <div class="promise-item">
                 <div class="promise-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>
                   </svg>
                 </div>
@@ -1903,13 +1930,13 @@ function viewCheckout() {
 
               <div class="promise-item">
                 <div class="promise-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                   </svg>
                 </div>
                 <div>
-                  <strong>Compra y pago 100% protegidos</strong>
-                  <p>Cifrado SSL de grado bancario. Respaldo directo en compras con tarjeta, transferencia o contraentrega.</p>
+                  <strong>Satisfacción garantizada</strong>
+                  <p>Cuidamos cada detalle de tu arreglo para que tu sorpresa y experiencia sean inolvidables.</p>
                 </div>
               </div>
             </div>
@@ -1984,7 +2011,7 @@ function handleCheckoutSubmit(form) {
     const el = form.elements[i];
     if (el.value && containsSqlInjection(el.value)) {
       logSecurityEvent('SQL_INJECTION_BLOCKED', `Intento bloqueado en Checkout (${el.name || el.id})`, { payloadPreview: el.value.slice(0, 50) });
-      el.setCustomValidity('Por seguridad de la base de datos, no se permiten comandos SQL ni código ejecutable.');
+      el.setCustomValidity('Por favor ingresa únicamente caracteres válidos.');
       el.reportValidity();
       return;
     }
@@ -2000,7 +2027,7 @@ function handleCheckoutSubmit(form) {
       docInput.setCustomValidity('');
     } else {
       if (!validarCedulaEcuatoriana(docInput.value)) {
-        docInput.setCustomValidity('La cédula ecuatoriana no es válida según el algoritmo Módulo 10 de Registro Civil.');
+        docInput.setCustomValidity('El número de cédula ingresado no es válido. Por favor verifica los 10 dígitos.');
         docInput.reportValidity();
         return;
       }
@@ -2040,7 +2067,7 @@ function validarDocumentoInput(input) {
   } else {
     if (input.value.length === 10) {
       if (!validarCedulaEcuatoriana(input.value)) {
-        input.setCustomValidity('Cédula ecuatoriana inválida. Verifica los 10 dígitos (Módulo 10).');
+        input.setCustomValidity('Cédula inválida. Por favor verifica los 10 dígitos.');
       } else {
         input.setCustomValidity('');
       }
@@ -2492,7 +2519,7 @@ function viewAccount() {
       <div class="page-title">
         <p class="eyebrow" aria-hidden="true">PANEL DE CONTROL</p>
         <h1>Mi Cuenta</h1>
-        <p style="color: var(--slate-muted); margin-top: 6px;">Bienvenido, <strong>${state.userProfile.name}</strong>. Administra tus pedidos, direcciones guardadas y seguridad.</p>
+        <p style="color: var(--slate-muted); margin-top: 6px;">Bienvenido, <strong>${state.userProfile.name}</strong>. Administra tus pedidos, direcciones guardadas y contraseña.</p>
       </div>
 
       <nav class="account-tabs-nav" aria-label="Módulos de cuenta">
@@ -2506,7 +2533,7 @@ function viewAccount() {
           Métodos de pago
         </button>
         <button class="account-tab-btn ${tab === 'security' ? 'active' : ''}" type="button" onclick="state.accountTab='security'; renderApp();" aria-current="${tab === 'security' ? 'page' : 'false'}">
-          Seguridad y Clave
+          Cambiar Contraseña
         </button>
       </nav>
 
@@ -2618,7 +2645,7 @@ function viewAccount() {
             </div>
           </div>
 
-          <p style="font-size: 13.5px; color: var(--slate-muted); margin-bottom: 16px;">Tus datos de tarjeta se encuentran tokenizados y protegidos bajo estándares PCI-DSS.</p>
+          <p style="font-size: 13.5px; color: var(--slate-muted); margin-bottom: 16px;">Método de pago guardado para tus próximas compras.</p>
           <button class="secondary" type="button" onclick="showToast('Módulo de registro de tarjeta bancaria')">+ Vincular otra tarjeta</button>
         </div>
       ` : ''}
@@ -2696,8 +2723,8 @@ function viewContact() {
     <section class="page-shell narrow" style="text-align: center; padding: 60px 20px;">
       <a class="back-link" href="index.html" aria-label="Volver a la página de inicio">${getIcon('back')} Volver al inicio</a>
       <div style="background: #FFFFFF; padding: 50px 30px; border-radius: 16px; margin-top: 20px; border: 1px solid rgb(44 62 80 / 14%); box-shadow: 0 10px 30px rgba(30,43,55,0.06);">
-        <div style="color: var(--green); margin-bottom: 20px;" aria-hidden="true">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto; display: block;">
+        <div style="color: var(--green); margin-bottom: 20px;">
+          <svg aria-hidden="true" focusable="false" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto; display: block;">
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
           </svg>
         </div>
@@ -2774,6 +2801,9 @@ function loadPersistedState() {
           return {
             ...item,
             stock: typeof item.stock === 'number' ? item.stock : (def ? def.stock : 30),
+            images: Array.isArray(item.images) && item.images.length > 0
+              ? item.images.map(getThumbnailUrl)
+              : (def ? def.images : []),
             description: (!item.description || item.description.length < 115) && def
               ? def.description
               : item.description
@@ -2911,11 +2941,11 @@ function updateCart(id, delta) {
     state.cart[id] = next;
     if (delta > 0) {
       if (current === 0) {
-        showToast(`✔ ¡"${p.name}" añadido al carrito! (1 de ${maxStock} en stock)`);
-        announceToScreenReader(`Se añadió una unidad de ${p.name} al carrito. Quedan ${maxStock - 1} disponibles en stock.`);
+        showToast(`✔ ¡"${p.name}" añadido al carrito!`);
+        announceToScreenReader(`Se añadió una unidad de ${p.name} al carrito.`);
       } else {
-        showToast(`➕ Se aumentó a ${next} unidades de "${p.name}" (Stock máx: ${maxStock}).`);
-        announceToScreenReader(`Se aumentó la cantidad de ${p.name} a ${next} de ${maxStock} disponibles.`);
+        showToast(`➕ Se aumentó a ${next} unidades de "${p.name}".`);
+        announceToScreenReader(`Se aumentó la cantidad de ${p.name} a ${next}.`);
       }
     } else if (delta < 0) {
       showToast(`➖ Se redujo a ${next} unidades de "${p.name}".`);

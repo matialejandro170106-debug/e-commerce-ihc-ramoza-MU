@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Administración Privado | Ramoza</title>
+  <meta name="description" content="Panel de control administrativo privado para gestión de inventario, stock y comprobantes de venta en Ramoza." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --slate: #1E2B37;
+      --slate-muted: #4A5A6A;
+      --green: #1B6A38;
+      --green-hover: #14532D;
+      --coral: #B83B2B;
+      --amber: #92400E;
+      --bg: #F4F6F8;
+      --card: #FFFFFF;
+      --border: #D8E0E8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--slate);
+      line-height: 1.45;
+    }
+    header {
+      background: var(--slate);
+      color: #FFFFFF;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--green);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .container {
+      max-width: 1120px;
+      margin: 24px auto;
+      padding: 0 16px 48px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(30, 43, 55, 0.05);
+    }
+    .login-box {
+      max-width: 430px;
+      margin: 60px auto;
+    }
+    h2 { margin: 0 0 14px; font-size: 18px; color: var(--slate); }
+    h3 { margin: 0 0 10px; font-size: 15px; color: var(--slate); }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--slate);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 11px;
+      margin-top: 4px;
+      border: 1px solid #BDC8D4;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13.5px;
+      color: var(--slate);
+      background: #FFFFFF;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--green);
+      border-color: var(--green);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 0 15px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--green); color: #FFFFFF; }
+    .btn-primary:hover { background: var(--green-hover); }
+    .btn-outline { background: #FFFFFF; border-color: var(--slate); color: var(--slate); }
+    .btn-outline:hover { background: var(--slate); color: #FFFFFF; }
+    .btn-danger { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+    .btn-danger:hover { background: #EF4444; color: #FFFFFF; }
+    .btn-amber { background: #FEF3C7; border-color: #D97706; color: #92400E; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      border-radius: 7px;
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+      color: var(--slate);
+    }
+    .tab-btn.active {
+      background: var(--green);
+      color: #FFFFFF;
+      border-color: var(--green);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background: #F8FAFC;
+      font-weight: 800;
+      color: var(--slate-muted);
+      text-transform: uppercase;
+      font-size: 11.5px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
+    .badge-ok { background: #DCFCE7; color: #14532D; border: 1px solid #16A34A; }
+    .badge-wait { background: #FEF3C7; color: #92400E; border: 1px solid #D97706; }
+    .badge-sec { background: #E0F2FE; color: #075985; border: 1px solid #0284C7; }
+    .badge-block { background: #FEE2E2; color: #991B1B; border: 1px solid #EF4444; }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11.5px;
+      background: #F1F5F9;
+      padding: 6px 8px;
+      border-radius: 5px;
+      word-break: break-all;
+    }
+    .toast-admin {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--slate);
+      color: #FFFFFF;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border-left: 4px solid var(--green);
+      font-size: 13.5px;
+      font-weight: 600;
+      display: none;
+      z-index: 999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔒 Ramoza · Aplicación de Administración Privada</h1>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="index.html" class="btn btn-outline" style="background: transparent; color: #FFFFFF; border-color: rgba(255,255,255,0.4);">Ir a la Tienda Pública</a>
+      <button id="admin-logout-btn" class="btn btn-danger" type="button" style="display: none;" onclick="adminLogout()">Cerrar Sesión Admin</button>
+    </div>
+  </header>
+
+  <div id="admin-toast" class="toast-admin" role="status" aria-live="polite"></div>
+
+  <main class="container" id="admin-app"></main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedido Confirmado | Ramoza Quito</title>
+  <meta name="description" content="Tu pedido en Ramoza ha sido procesado exitosamente. Consulta el código de orden y los detalles del despacho protegido.">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="exito">
+  <div class="app">
+    <a class="skip-link" href="#main">Saltar al contenido principal</a>
+    <header class="site-header">
+      <div class="utility">Envíos en Quito y Valles · Transporte protegido en auto</div>
+      <div class="header-main">
+        <a class="logo" id="nav-logo" href="index.html" aria-label="Ramoza, ir a página de inicio">
+          <span class="logo-mark" aria-hidden="true">
+            <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 21C5 10 11 4 20 3c0 9-5 15-15 18Z"></path><path d="M6 19c3-5 6-8 11-12"></path>
+            </svg>
+          </span>
+          <span><span class="brand-title">ramo<span class="brand-accent">za</span></span><span class="brand-sub">FLORES Y OBSEQUIOS</span></span>
+        </a>
+        <form class="search" role="search" id="search-form" action="catalogo.html">
+          <label class="sr-only" for="site-search">Buscar flores, regalos o arreglos</label>
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path>
+          </svg>
+          <input id="site-search" name="q" maxlength="100" placeholder="¿Qué detalle estás buscando?" aria-label="Buscar flores, regalos o arreglos" />
+          <button type="submit" aria-label="Ejecutar búsqueda de productos">Buscar</button>
+        </form>
+        <div class="header-actions">
+          <a class="header-action" id="nav-account" href="cuenta.html?auth=signin" aria-label="Iniciar sesión o crear cuenta">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>
+            </svg>
+            <span><span class="action-sub" id="auth-status">Hola, invitado</span><span class="action-label" id="auth-label">Mi cuenta</span></span>
+          </a>
+          <a class="header-action cart-action" id="nav-cart" href="carrito.html" aria-label="Abrir carrito de compras">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H7"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>
+            </svg>
+            <span><span class="action-sub">Mi compra</span><span class="action-label">Carrito</span></span>
+            <span class="badge" id="cart-badge" aria-live="polite" style="display: none;">0</span>
+          </a>
+        </div>
+      </div>
+      <nav aria-label="Categorías principales">
+        <div class="nav-inner" id="main-nav">
+          <a href="index.html" class="nav-link" data-cat="Todos" aria-label="Ir a página de inicio">Inicio</a>
+          <a href="catalogo.html?cat=Arreglos%20florales" class="nav-link" data-cat="Arreglos florales" aria-label="Ver categoría Arreglos florales">Arreglos florales</a>
+          <a href="catalogo.html?cat=Regalos" class="nav-link" data-cat="Regalos" aria-label="Ver categoría Regalos">Regalos</a>
+          <a href="catalogo.html?cat=Funerarios" class="nav-link" data-cat="Funerarios" aria-label="Ver categoría Funerarios">Funerarios</a>
+          <a href="politicas.html" class="nav-link" data-nav="policy" aria-label="Consultar envíos y devoluciones">Envíos y devoluciones</a>
+        </div>
+      </nav>
+    </header>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" style="display: none;">
+      <span>
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m5 12 4 4L19 6"></path>
+        </svg>
+      </span>
+      <span id="toast-message"></span>
+      <button id="toast-close" type="button" aria-label="Cerrar notificación">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 6 12 12M18 6 6 18"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <main id="main" tabindex="-1">
+      <div id="view-container">
+        <!-- Renderizado dinámico vía main.js -->
+        <section class="page-shell narrow success-page">
+          <h1>¡Pedido confirmado con éxito!</h1>
+          <p style="color: var(--slate-muted);">Generando comprobante de tu orden...</p>
+        </section>
+      </div>
+    </main>
+
+    <!-- Chatbot Asistente Virtual Accesible 24/7 -->
+    <div class="chatbot-container" id="chatbot-container">
+      <button id="chatbot-toggle-btn" class="chatbot-toggle-btn" type="button" aria-expanded="false" aria-controls="chatbot-window" aria-label="Abrir asistente virtual de atención 24 horas">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Asistente 24/7</span>
+      </button>
+
+      <div class="chatbot-window" id="chatbot-window" role="dialog" aria-modal="false" aria-label="Chat de soporte virtual Ramoza" style="display: none;">
+        <div class="chatbot-header">
+          <div class="chatbot-header-info">
+            <span class="chatbot-status-dot" aria-hidden="true"></span>
+            <div>
+              <strong>Asistente Ramoza</strong>
+              <span class="chatbot-substatus">En línea 24/7</span>
+            </div>
+          </div>
+          <button id="chatbot-close-btn" class="chatbot-close-btn" type="button" aria-label="Cerrar asistente virtual">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="chatbot-messages" id="chatbot-messages" role="log" aria-live="polite">
+          <div class="chat-msg bot">
+            <p>¡Hola! Soy tu asistente virtual de Ramoza 🌸 ¿En qué puedo orientarte hoy con tu pedido o entrega?</p>
+          </div>
+        </div>
+
+        <div class="chatbot-quick-questions" aria-label="Preguntas rápidas de ayuda">
+          <button type="button" class="faq-chip" data-faq="cobertura">Cobertura en Quito</button>
+          <button type="button" class="faq-chip" data-faq="costo">Costo de envío</button>
+          <button type="button" class="faq-chip" data-faq="pago">Formas de pago</button>
+          <button type="button" class="faq-chip" data-faq="comprobante">Comprobante de venta</button>
+          <button type="button" class="faq-chip" data-faq="horarios">Horarios de entrega</button>
+          <button type="button" class="faq-chip" data-faq="documento">Cédula o Pasaporte</button>
+          <button type="button" class="faq-chip" data-faq="dedicatoria">Dedicatoria funeraria</button>
+          <button type="button" class="faq-chip" data-faq="foto">Foto por WhatsApp</button>
+          <button type="button" class="faq-chip" data-faq="cuidados">Cuidados de flores</button>
+        </div>
+
+        <form class="chatbot-input-form" id="chatbot-input-form">
+          <label for="chatbot-user-input" class="sr-only">Escribe tu pregunta</label>
+          <input type="text" id="chatbot-user-input" maxlength="150" placeholder="Escribe tu consulta..." autocomplete="off" />
+          <button type="submit" aria-label="Enviar mensaje al asistente">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-main">
+        <div>
+          <a class="logo" id="footer-logo" href="index.html" aria-label="Ramoza, ir a página de inicio">
+            <span class="logo-mark" aria-hidden="true">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 21C5 10 11 4 20 3c0 9-5 15-15 18Z"></path><path d="M6 19c3-5 6-8 11-12"></path>
+              </svg>
+            </span>
+            <span><span class="brand-title">ramo<span class="brand-accent">za</span></span><span class="brand-sub">FLORES Y OBSEQUIOS</span></span>
+          </a>
+          <p>Plataforma digital de flores y obsequios ofrecidos por empresas proveedoras en Quito y los Valles.</p>
+        </div>
+        <div role="navigation" aria-label="Comprar por categoría">
+          <h2>Comprar</h2>
+          <a href="catalogo.html?cat=Arreglos%20florales" class="footer-link" data-cat="Arreglos florales">Arreglos florales</a>
+          <a href="catalogo.html?cat=Regalos" class="footer-link" data-cat="Regalos">Regalos</a>
+          <a href="catalogo.html?cat=Funerarios" class="footer-link" data-cat="Funerarios">Funerarios</a>
+        </div>
+        <div role="navigation" aria-label="Ayuda e información">
+          <h2>Ayuda</h2>
+          <a href="politicas.html" class="footer-link" data-nav="policy">Envíos y devoluciones</a>
+          <a href="contacto.html" class="footer-link" data-nav="contact">Contactar por WhatsApp</a>
+        </div>
+        <div role="navigation" aria-label="Opciones de cuenta">
+          <h2>Cuenta</h2>
+          <a href="cuenta.html?auth=signin" class="footer-link" data-nav="signin">Iniciar sesión</a>
+          <a href="cuenta.html?auth=signup" class="footer-link" data-nav="signup">Crear una cuenta</a>
+        </div>
+      </div>
+      <div class="footer-bottom"><span>© 2026 Ramoza. Todos los derechos reservados.</span></div>
+    </footer>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>

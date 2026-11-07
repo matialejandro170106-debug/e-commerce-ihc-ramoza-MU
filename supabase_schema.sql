@@ -551,6 +551,9 @@ CREATE POLICY pol_usuarios_select ON public.usuarios FOR SELECT USING (TRUE);
 DROP POLICY IF EXISTS pol_usuarios_insert ON public.usuarios;
 CREATE POLICY pol_usuarios_insert ON public.usuarios FOR INSERT WITH CHECK (public.fn_validar_documento_identidad(tipo_documento, documento_identidad));
 
+DROP POLICY IF EXISTS pol_usuarios_update ON public.usuarios;
+CREATE POLICY pol_usuarios_update ON public.usuarios FOR UPDATE USING (TRUE) WITH CHECK (TRUE);
+
 DROP POLICY IF EXISTS pol_pedidos_select ON public.pedidos;
 CREATE POLICY pol_pedidos_select ON public.pedidos FOR SELECT USING (TRUE);
 

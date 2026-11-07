@@ -633,11 +633,22 @@ const SUPABASE_CONFIG = {
 // Configura tu cuenta gratuita en https://www.emailjs.com y pega aquí tus 4 datos.
 // Se usa para enviar el Comprobante de Venta y el código de "Olvidé mi contraseña" al correo real del cliente.
 const EMAIL_CONFIG = {
-  publicKey: '',          // Account → General → Public Key
-  serviceId: '',          // Email Services → Service ID (ej. service_xxxxx)
-  templateReceipt: '',    // Email Templates → ID de la plantilla del comprobante (ej. template_comprobante)
-  templateReset: ''       // Email Templates → ID de la plantilla del código de recuperación (ej. template_reset)
+  publicKey: 'A0teF1IaOfJPDvy3b',
+  serviceId: 'service_7e56kcy',
+  templateReceipt: 'template_5onx3c8',
+  templateReset: 'template_cctkjbt'
 };
+
+function getActiveEmailConfig() {
+  try {
+    const saved = localStorage.getItem('ramoza_email_config');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.publicKey && parsed.serviceId) return parsed;
+    }
+  } catch (e) {}
+  return EMAIL_CONFIG;
+}
 
 function getActiveSupabaseConfig() {
   try {
@@ -1134,7 +1145,30 @@ const AccountService = {
       return { ok: false, message: 'Por favor ingresa un correo electrónico válido.' };
     }
 
-    // 1. Disparar correo nativo de recuperación de Supabase Auth
+    // 1. Verificar si el correo pertenece a una cuenta registrada
+    let userFound = false;
+    if (RamozaSupabase.isConnected()) {
+      const cfg = getActiveSupabaseConfig();
+      const baseUrl = cfg.url.replace(/\/$/, '');
+      try {
+        const checkRes = await fetch(`${baseUrl}/rest/v1/usuarios?email=eq.${encodeURIComponent(mail)}&select=id,email`, {
+          method: 'GET',
+          headers: RamozaSupabase.getHeaders()
+        });
+        if (checkRes.ok) {
+          const rows = await checkRes.json().catch(() => []);
+          if (Array.isArray(rows) && rows.length > 0) userFound = true;
+        }
+      } catch (e) {}
+    }
+    const accounts = readLocalJson(LOCAL_ACCOUNTS_KEY);
+    if (accounts[mail]) userFound = true;
+
+    if (!userFound) {
+      return { ok: false, message: 'No encontramos ninguna cuenta registrada con este correo electrónico.' };
+    }
+
+    // 2. Disparar correo de recuperación de Supabase Auth
     if (RamozaSupabase.isConnected()) {
       const cfg = getActiveSupabaseConfig();
       const baseUrl = cfg.url.replace(/\/$/, '');
@@ -1151,7 +1185,7 @@ const AccountService = {
       } catch (e) {}
     }
 
-    // 2. Generar código numérico de 6 dígitos con vigencia de 15 minutos
+    // 3. Generar código numérico de 6 dígitos con vigencia de 15 minutos
     const code = generateNumericCode(6);
     const resets = readLocalJson(LOCAL_RESET_KEY);
     const crypto = hashWithSalt(code);
@@ -1164,7 +1198,7 @@ const AccountService = {
     };
     writeLocalJson(LOCAL_RESET_KEY, resets);
 
-    // 3. Enviar vía EmailService si está configurado
+    // 4. Enviar vía EmailService si está configurado
     if (EmailService.isConfigured('reset')) {
       await EmailService.sendResetCode(mail, code);
     }
@@ -1235,17 +1269,19 @@ const AccountService = {
 // ================= SERVICIO DE CORREO (EmailJS) =================
 const EmailService = {
   isConfigured(kind) {
-    const tpl = kind === 'reset' ? EMAIL_CONFIG.templateReset : EMAIL_CONFIG.templateReceipt;
-    return Boolean(EMAIL_CONFIG.publicKey && EMAIL_CONFIG.serviceId && tpl);
+    const cfg = getActiveEmailConfig();
+    const tpl = kind === 'reset' ? cfg.templateReset : cfg.templateReceipt;
+    return Boolean(cfg.publicKey && cfg.serviceId && tpl);
   },
   loadSdk() {
+    const cfg = getActiveEmailConfig();
     return new Promise((resolve, reject) => {
       if (window.emailjs && window.emailjs.send) return resolve(window.emailjs);
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
       s.async = true;
       s.onload = () => {
-        window.emailjs.init({ publicKey: EMAIL_CONFIG.publicKey });
+        window.emailjs.init({ publicKey: cfg.publicKey });
         resolve(window.emailjs);
       };
       s.onerror = () => reject(new Error('No se pudo cargar el servicio de correo'));
@@ -1253,9 +1289,10 @@ const EmailService = {
     });
   },
   async send(templateId, params) {
+    const cfg = getActiveEmailConfig();
     const sdk = await this.loadSdk();
     const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000));
-    return Promise.race([sdk.send(EMAIL_CONFIG.serviceId, templateId, params), timeout]);
+    return Promise.race([sdk.send(cfg.serviceId, templateId, params), timeout]);
   },
   buildReceiptHtml(r) {
     const rows = (r.itemsList || []).map(i => `
@@ -1275,15 +1312,17 @@ const EmailService = {
         <table style="width:100%;border-collapse:collapse;font-size:14px;">${rows}</table>
         <p style="text-align:right;margin:10px 0 0;">Subtotal: $${Number(r.subtotal).toFixed(2)}<br>Envío: $${Number(r.deliveryCost).toFixed(2)}<br>
         <strong style="font-size:17px;">Total: $${Number(r.total).toFixed(2)}</strong></p>
-        <p style="color:#6b7280;font-size:12px;">Este documento es un Comprobante de Venta (no es factura). Ramoza · Quito, Ecuador.</p>
+        <p style="color:#6b7280;font-size:12px;">Este documento es un Comprobante de Venta emitido por Ramoza · Flores y Obsequios en Quito y Valles.</p>
       </div>`;
   },
   async sendReceipt(receipt, toEmail) {
     if (!isValidEmail(toEmail)) return { ok: false, message: 'Correo no válido.' };
     if (!this.isConfigured('receipt')) return { ok: false, message: 'El envío de correos aún no está configurado.' };
+    const cfg = getActiveEmailConfig();
     try {
-      await this.send(EMAIL_CONFIG.templateReceipt, {
+      await this.send(cfg.templateReceipt, {
         to_email: toEmail,
+        email: toEmail,
         to_name: receipt.buyerName,
         receipt_number: receipt.receiptNumber,
         order_code: receipt.orderCode,
@@ -1304,14 +1343,15 @@ const EmailService = {
   },
   async sendResetCode(toEmail, code) {
     if (!this.isConfigured('reset')) {
-      return { ok: false, message: 'El envío de correos aún no está configurado. Contacta a Ramoza por WhatsApp para recuperar tu cuenta.' };
+      return { ok: false, message: 'El envío de correos aún no está configurado.' };
     }
+    const cfg = getActiveEmailConfig();
     try {
-      await this.send(EMAIL_CONFIG.templateReset, { to_email: toEmail, code: code, expires_minutes: '10' });
+      await this.send(cfg.templateReset, { to_email: toEmail, email: toEmail, code: code, passcode: code, expires_minutes: '15' });
       return { ok: true };
     } catch (e) {
-      console.warn('No se pudo enviar el código:', e);
-      return { ok: false, message: 'No se pudo enviar el correo en este momento. Inténtalo nuevamente.' };
+      console.warn('No se pudo enviar el código por correo:', e);
+      return { ok: false, message: 'No se pudo enviar el código por correo en este momento.' };
     }
   }
 };
@@ -2629,7 +2669,102 @@ async function handleConfirmReset(form) {
   showToast('✔ Contraseña restablecida. Ahora puedes iniciar sesión.');
 }
 
+function viewSupabaseRecoveryForm(token) {
+  return `
+    <section class="auth-page">
+      <div class="auth-card">
+        <h1>Crea tu nueva contraseña</h1>
+        <p style="color: var(--slate-muted); font-size: 14.5px; margin-bottom: 20px;">
+          Ingresa y confirma tu nueva contraseña de acceso para Ramoza:
+        </p>
+        <form onsubmit="event.preventDefault(); handleSupabaseRecoverySubmit(this, '${escapeHtml(token)}');" autocomplete="off">
+          <label for="rec-pwd1">
+            Nueva contraseña
+            <div class="password-wrapper">
+              <input type="password" id="rec-pwd1" name="pwd1" required minlength="8" placeholder="Mínimo 8 caracteres" />
+              <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('rec-pwd1', this)" aria-label="Ver contraseña" aria-pressed="false" title="Ver contraseña">
+                ${getIcon('eye', 18)}
+              </button>
+            </div>
+          </label>
+
+          <label for="rec-pwd2">
+            Confirmar nueva contraseña
+            <div class="password-wrapper">
+              <input type="password" id="rec-pwd2" name="pwd2" required minlength="8" placeholder="Repite tu contraseña" />
+              <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('rec-pwd2', this)" aria-label="Ver contraseña" aria-pressed="false" title="Ver contraseña">
+                ${getIcon('eye', 18)}
+              </button>
+            </div>
+          </label>
+
+          <button class="primary wide" type="submit" style="margin-top: 14px;">Actualizar Contraseña</button>
+        </form>
+      </div>
+    </section>
+  `;
+}
+
+async function handleSupabaseRecoverySubmit(form, token) {
+  const pwd1 = form.pwd1?.value || '';
+  const pwd2 = form.pwd2?.value || '';
+  if (pwd1 !== pwd2) {
+    showToast('Las contraseñas no coinciden.', 'error');
+    return;
+  }
+  if (pwd1.length < 8) {
+    showToast('La contraseña debe tener al menos 8 caracteres.', 'error');
+    return;
+  }
+
+  const cfg = getActiveSupabaseConfig();
+  const baseUrl = cfg.url.replace(/\/$/, '');
+  try {
+    const res = await fetch(`${baseUrl}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': cfg.anonKey,
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ password: pwd1 })
+    });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const email = data.email || '';
+      if (email) {
+        const crypto = hashWithSalt(pwd1);
+        fetch(`${baseUrl}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}`, {
+          method: 'PATCH',
+          headers: RamozaSupabase.getHeaders(),
+          body: JSON.stringify({ password_salt: crypto.salt, password_hash_sha256: crypto.hash })
+        }).catch(() => {});
+        const accounts = readLocalJson(LOCAL_ACCOUNTS_KEY);
+        if (accounts[email]) {
+          accounts[email].salt = crypto.salt;
+          accounts[email].hash = crypto.hash;
+          writeLocalJson(LOCAL_ACCOUNTS_KEY, accounts);
+        }
+      }
+      showToast('¡Contraseña actualizada exitosamente! Ahora puedes iniciar sesión.', 'success');
+      window.location.hash = '';
+      setTimeout(() => {
+        window.location.href = 'cuenta.html?auth=signin';
+      }, 1000);
+      return;
+    }
+  } catch (err) {}
+  showToast('El enlace de recuperación ha expirado o no es válido.', 'error');
+}
+
 function viewForgotPassword() {
+  const hash = window.location.hash ? window.location.hash.substring(1) : '';
+  const hashParams = new URLSearchParams(hash);
+  const recToken = hashParams.get('access_token');
+  const isRec = hashParams.get('type') === 'recovery' || hash.includes('type=recovery');
+  if (isRec && recToken) {
+    return viewSupabaseRecoveryForm(recToken);
+  }
   if (resetFlowState.step === 'code') {
     return `
       <section class="auth-page">
@@ -3653,6 +3788,15 @@ function setupChatbot() {
 // ================= INICIALIZACIÓN MULTIPÁGINA =================
 
 function initMultiPage() {
+  const currentHash = window.location.hash || '';
+  if (currentHash.includes('type=recovery')) {
+    const currentPath = window.location.pathname.toLowerCase();
+    if (!currentPath.includes('cuenta.html')) {
+      window.location.href = 'cuenta.html?auth=forgot' + currentHash;
+      return;
+    }
+  }
+
   loadPersistedState();
 
   const path = window.location.pathname.toLowerCase();
